@@ -3,15 +3,9 @@
 
 #include <ros/ros.h>
 
-#include <pcl/io/pcd_io.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/filters/approximate_voxel_grid.h>
-
-#include <glk/pointcloud_buffer.hpp>
-#include <glk/pointcloud_buffer_pcl.hpp>
-#include <glk/primitives/primitives.hpp>
-#include <guik/viewer/light_viewer.hpp>
 
 #include <pcl_ros/point_cloud.h>
 #include <hdl_global_localization/SetGlobalMap.h>
@@ -26,7 +20,7 @@ namespace hdl_global_localization {
 class GlobalLocalizationNode {
 public:
   GlobalLocalizationNode() : nh(), private_nh("~") {
-    engine.reset(new GlobalLocalizationEngineFPFH_RANSAC(private_nh));
+    set_engine(private_nh.param<std::string>("global_localization_engine", "FPFH_RANSAC"));
 
     set_engine_server = private_nh.advertiseService("set_engine", &GlobalLocalizationNode::set_engine, this);
     set_global_map_server = private_nh.advertiseService("set_global_map", &GlobalLocalizationNode::set_global_map, this);
@@ -43,17 +37,17 @@ private:
     return filtered;
   }
 
-  bool set_engine(SetGlobalLocalizationEngine::Request& req, SetGlobalLocalizationEngine::Response& res) {
-    if (req.engine_name.data == "FPFH_RANSAC") {
+  bool set_engine(const std::string& engine_name) {
+    if (engine_name == "FPFH_RANSAC") {
       engine.reset(new GlobalLocalizationEngineFPFH_RANSAC(private_nh));
     }
-#ifdef TEASERPP_ENABLED
-    else if (req.engine_name.data == "FPFH_TEASER") {
+#ifdef TEASER_ENABLED
+    else if (engine_name == "FPFH_TEASER") {
       engine.reset(new GlobalLocalizationEngineFPFH_Teaser(private_nh));
     }
 #endif
     else {
-      ROS_WARN_STREAM("Unknown Global Localization Engine:" << req.engine_name.data);
+      ROS_ERROR_STREAM("Unknown Global Localization Engine:" << engine_name);
       return false;
     }
 
@@ -62,6 +56,11 @@ private:
     }
 
     return true;
+  }
+
+  bool set_engine(SetGlobalLocalizationEngine::Request& req, SetGlobalLocalizationEngine::Response& res) {
+    ROS_INFO_STREAM("Set Global Localization Engine");
+    return set_engine(req.engine_name.data);
   }
 
   bool set_global_map(SetGlobalMapRequest& req, SetGlobalMapResponse& res) {

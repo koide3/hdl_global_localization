@@ -3,7 +3,7 @@
 
 #include <ros/ros.h>
 
-#include <hdl_global_localization/global_localization_engine.hpp>
+#include <hdl_global_localization/engines/global_localization_engine.hpp>
 #include <hdl_global_localization/ransac/ransac_pose_estimation.hpp>
 
 namespace hdl_global_localization {

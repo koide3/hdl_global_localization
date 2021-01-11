@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(hdl_global_localization)
 
-option(ENABLE_TEASERPP "Build with Teaser++" ON)
+option(ENABLE_TEASER "Build with Teaser++" ON)
 
 find_package(catkin REQUIRED COMPONENTS
   iridescence
@@ -19,9 +19,8 @@ if (OPENMP_FOUND)
 endif()
 
 include(ExternalProject)
-
-if(ENABLE_TEASERPP)
-  ExternalProject_Add(teaserpp
+if(ENABLE_TEASER)
+  ExternalProject_Add(teaser
     GIT_REPOSITORY https://github.com/koide3/TEASER-plusplus
     GIT_TAG master
     BUILD_IN_SOURCE
@@ -29,13 +28,13 @@ if(ENABLE_TEASERPP)
     INSTALL_COMMAND make install
   )
 
-  set(TEASERPP_LIBRARIES
+  set(TEASER_LIBRARIES
     ${CATKIN_DEVEL_PREFIX}/lib/libpmc.so
     ${CATKIN_DEVEL_PREFIX}/lib/libteaser_registration.so
     ${CATKIN_DEVEL_PREFIX}/lib/libteaser_features.so
   )
 
-  add_definitions(-DTEASERPP_ENABLED)
+  add_definitions(-DTEASER_ENABLED)
 endif()
 
 ################################################
@@ -87,18 +86,19 @@ add_library(hdl_global_localization SHARED
   src/hdl_global_localization/engines/global_localization_fpfh_ransac.cpp
 )
 
-if(TEASERPP_LIBRARIES)
+if(TEASER_LIBRARIES)
   add_library(hdl_global_localization_teaser SHARED
     src/hdl_global_localization/engines/global_localization_fpfh_teaser.cpp
   )
-  add_dependencies(hdl_global_localization_teaser teaserpp)
+  add_dependencies(hdl_global_localization_teaser teaser)
   target_link_libraries(hdl_global_localization_teaser
-    ${TEASERPP_LIBRARIES}
+    ${TEASER_LIBRARIES}
   )
   target_link_libraries(hdl_global_localization
     hdl_global_localization_teaser
   )
 endif()
+
 
 add_executable(hdl_global_localization_node src/hdl_global_localization_node.cpp)
 add_dependencies(hdl_global_localization_node hdl_global_localization ${PROJECT_NAME}_gencpp)
