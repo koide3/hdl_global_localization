@@ -1,0 +1,6 @@
+#ifndef HDL_GLOBAL_LOCALIZATION_BBS_HPP
+#define HDL_GLOBAL_LOCALIZATION_BBS_HPP
+
+// To be implemented
+
+#endif

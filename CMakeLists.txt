@@ -1,0 +1,115 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(hdl_global_localization)
+
+option(ENABLE_TEASERPP "Build with Teaser++" ON)
+
+find_package(catkin REQUIRED COMPONENTS
+  iridescence
+  roscpp
+  pcl_ros
+  sensor_msgs
+  geometry_msgs
+  message_generation
+)
+
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
+include(ExternalProject)
+
+if(ENABLE_TEASERPP)
+  ExternalProject_Add(teaserpp
+    GIT_REPOSITORY https://github.com/koide3/TEASER-plusplus
+    GIT_TAG master
+    BUILD_IN_SOURCE
+    CMAKE_ARGS -DBUILD_TESTS=OFF -DBUILD_PYTHON_BINDINGS=OFF -DBUILD_DOC=OFF -DBUILD_TEASER_FPFH=ON -DCMAKE_INSTALL_PREFIX=${CATKIN_DEVEL_PREFIX}
+    INSTALL_COMMAND make install
+  )
+
+  set(TEASERPP_LIBRARIES
+    ${CATKIN_DEVEL_PREFIX}/lib/libpmc.so
+    ${CATKIN_DEVEL_PREFIX}/lib/libteaser_registration.so
+    ${CATKIN_DEVEL_PREFIX}/lib/libteaser_features.so
+  )
+
+  add_definitions(-DTEASERPP_ENABLED)
+endif()
+
+################################################
+## Declare ROS messages, services and actions ##
+################################################
+
+add_service_files(
+  FILES
+  SetGlobalLocalizationEngine.srv
+  SetGlobalMap.srv
+  QueryGlobalLocalization.srv
+)
+generate_messages(
+  DEPENDENCIES std_msgs sensor_msgs geometry_msgs
+)
+
+################################################
+## Declare ROS dynamic reconfigure parameters ##
+################################################
+
+## Generate dynamic reconfigure parameters in the 'cfg' folder
+# generate_dynamic_reconfigure_options(
+#   cfg/DynReconf1.cfg
+#   cfg/DynReconf2.cfg
+# )
+
+###################################
+## catkin specific configuration ##
+###################################
+catkin_package(
+#  INCLUDE_DIRS include
+#  LIBRARIES hdl_global_localization
+#  CATKIN_DEPENDS roscpp
+#  DEPENDS teaser_registration
+)
+
+###########
+## Build ##
+###########
+
+include_directories(
+  include
+  ${catkin_INCLUDE_DIRS}
+)
+
+add_library(hdl_global_localization SHARED
+  src/hdl_global_localization/ransac/voxelset.cpp
+  src/hdl_global_localization/ransac/ransac_pose_estimation.cpp
+  src/hdl_global_localization/engines/global_localization_fpfh_ransac.cpp
+)
+
+if(TEASERPP_LIBRARIES)
+  add_library(hdl_global_localization_teaser SHARED
+    src/hdl_global_localization/engines/global_localization_fpfh_teaser.cpp
+  )
+  add_dependencies(hdl_global_localization_teaser teaserpp)
+  target_link_libraries(hdl_global_localization_teaser
+    ${TEASERPP_LIBRARIES}
+  )
+  target_link_libraries(hdl_global_localization
+    hdl_global_localization_teaser
+  )
+endif()
+
+add_executable(hdl_global_localization_node src/hdl_global_localization_node.cpp)
+add_dependencies(hdl_global_localization_node hdl_global_localization ${PROJECT_NAME}_gencpp)
+target_link_libraries(hdl_global_localization_node
+  hdl_global_localization
+  ${catkin_LIBRARIES}
+)
+
+
+add_executable(hdl_global_localization_test src/hdl_global_localization_test.cpp)
+add_dependencies(hdl_global_localization_test ${PROJECT_NAME}_gencpp)
+target_link_libraries(hdl_global_localization_test
+  ${catkin_LIBRARIES}
+)
