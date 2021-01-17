@@ -5,6 +5,8 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <ros/ros.h>
+
 namespace hdl_global_localization {
 
 DiscreteTransformation::DiscreteTransformation() {
@@ -70,23 +72,14 @@ std::vector<DiscreteTransformation> DiscreteTransformation::branch() {
   return b;
 }
 
-BBSLocalization::BBSLocalization() {
-  max_range = 15.0;
-
-  min_tx = -10.0;
-  max_tx = 10.0;
-  min_ty = -10.0;
-  max_ty = 10.0;
-  min_theta = -M_PI;
-  max_theta = M_PI;
-}
+BBSLocalization::BBSLocalization(const BBSParams& params) : params(params) {}
 
 BBSLocalization::~BBSLocalization() {}
 
-void BBSLocalization::set_map(const BBSLocalization::Points& map_points, double resolution, int width, int height, int pyramid_levels) {
+void BBSLocalization::set_map(const BBSLocalization::Points& map_points, double resolution, int width, int height, int pyramid_levels, int max_points_per_cell) {
   gridmap_pyramid.resize(pyramid_levels);
   gridmap_pyramid[0].reset(new OccupancyGridMap(resolution, width, height));
-  gridmap_pyramid[0]->insert_points(map_points, 5);
+  gridmap_pyramid[0]->insert_points(map_points, max_points_per_cell);
 
   for (int i = 1; i < pyramid_levels; i++) {
     gridmap_pyramid[i] = gridmap_pyramid[i - 1]->pyramid_up();
@@ -94,7 +87,7 @@ void BBSLocalization::set_map(const BBSLocalization::Points& map_points, double 
 }
 
 boost::optional<Eigen::Isometry2f> BBSLocalization::localize(const BBSLocalization::Points& scan_points, double min_score, double* best_score) {
-  theta_resolution = std::acos(1 - std::pow(gridmap_pyramid[0]->grid_resolution(), 2) / (2 * std::pow(max_range, 2)));
+  theta_resolution = std::acos(1 - std::pow(gridmap_pyramid[0]->grid_resolution(), 2) / (2 * std::pow(params.max_range, 2)));
 
   double best_score_storage;
   best_score = best_score ? best_score : &best_score_storage;
@@ -104,6 +97,7 @@ boost::optional<Eigen::Isometry2f> BBSLocalization::localize(const BBSLocalizati
 
   auto trans_queue = create_init_transset(scan_points);
 
+  ROS_INFO_STREAM("Branch-and-Bound");
   while (!trans_queue.empty()) {
     // std::cout << trans_queue.size() << std::endl;
 
@@ -139,14 +133,14 @@ std::shared_ptr<const OccupancyGridMap> BBSLocalization::gridmap() const {
 
 std::priority_queue<DiscreteTransformation> BBSLocalization::create_init_transset(const Points& scan_points) const {
   double trans_res = gridmap_pyramid.back()->grid_resolution();
-  std::pair<int, int> tx_range(std::floor(min_tx / trans_res), std::ceil(max_tx / trans_res));
-  std::pair<int, int> ty_range(std::floor(min_ty / trans_res), std::ceil(max_ty / trans_res));
-  std::pair<int, int> theta_range(std::floor(min_theta / theta_resolution), std::ceil(max_theta / theta_resolution));
+  std::pair<int, int> tx_range(std::floor(params.min_tx / trans_res), std::ceil(params.max_tx / trans_res));
+  std::pair<int, int> ty_range(std::floor(params.min_ty / trans_res), std::ceil(params.max_ty / trans_res));
+  std::pair<int, int> theta_range(std::floor(params.min_theta / theta_resolution), std::ceil(params.max_theta / theta_resolution));
 
-  std::cout << "res:" << trans_res << " " << theta_resolution << std::endl;
-  std::cout << tx_range.first << " " << tx_range.second << std::endl;
-  std::cout << ty_range.first << " " << ty_range.second << std::endl;
-  std::cout << theta_range.first << " " << theta_range.second << std::endl;
+  ROS_INFO_STREAM("Resolution trans:" << trans_res << " theta:" << theta_resolution);
+  ROS_INFO_STREAM("TransX range:" << tx_range.first << " " << tx_range.second);
+  ROS_INFO_STREAM("TransY range:" << ty_range.first << " " << ty_range.second);
+  ROS_INFO_STREAM("Theta  range:" << theta_range.first << " " << theta_range.second);
 
   std::vector<DiscreteTransformation> transset;
   transset.reserve((tx_range.second - tx_range.first) * (ty_range.second - ty_range.first) * (theta_range.second - theta_range.first));
@@ -159,8 +153,9 @@ std::priority_queue<DiscreteTransformation> BBSLocalization::create_init_transse
     }
   }
 
-  std::cout << "num:" << transset.size() << std::endl;
+  ROS_INFO_STREAM("Initial transformation set size:" << transset.size());
 
+#pragma omp parallel for
   for (int i = 0; i < transset.size(); i++) {
     auto& trans = transset[i];
     const auto& gridmap = gridmap_pyramid[trans.level];

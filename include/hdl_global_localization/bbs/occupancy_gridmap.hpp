@@ -69,14 +69,14 @@ public:
     return std::make_shared<OccupancyGridMap>(resolution * 2.0, small_map);
   }
 
-  nav_msgs::OccupancyGridConstPtr to_rosmsg(double scale = 255.0) const {
+  nav_msgs::OccupancyGridConstPtr to_rosmsg() const {
     nav_msgs::OccupancyGridPtr msg(new nav_msgs::OccupancyGrid);
     msg->header.frame_id = "map";
     msg->header.stamp = ros::Time(0);
 
     msg->data.resize(values.rows * values.cols);
     std::transform(values.begin(), values.end(), msg->data.begin(), [=](auto x) {
-      double x_ = x * scale;
+      double x_ = x * 100.0;
       return std::max(0.0, std::min(100.0, x_));
     });
 

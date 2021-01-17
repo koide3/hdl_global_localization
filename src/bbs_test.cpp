@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
   }
 
   hdl_global_localization::BBSLocalization bbs;
-  bbs.set_map(map_2d, 0.5, 512, 1024, 5);
+  bbs.set_map(map_2d, 0.5, 512, 1024, 5, 5);
 
   auto viewer = guik::LightViewer::instance();
   auto gridmap = bbs.gridmap();

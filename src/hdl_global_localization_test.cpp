@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   pcl::io::loadPCDFile(argv[1], *global_map);
 
   GlobalLocalizationTestNode node;
-  node.set_engine("FPFH_RANSAC");
+  // node.set_engine("FPFH_RANSAC");
   node.set_global_map(global_map);
 
   ros::spin();

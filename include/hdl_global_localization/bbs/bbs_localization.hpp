@@ -41,14 +41,32 @@ public:
   int theta;
 };
 
+struct BBSParams {
+  BBSParams() {
+    max_range = 15.0;
+    min_tx = min_ty = -10.0;
+    max_tx = max_ty = 10.0;
+    min_theta = -M_PI;
+    max_theta = M_PI;
+  }
+
+  double max_range;
+  double min_tx;
+  double max_tx;
+  double min_ty;
+  double max_ty;
+  double min_theta;
+  double max_theta;
+};
+
 class BBSLocalization {
 public:
   using Points = std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>;
 
-  BBSLocalization();
+  BBSLocalization(const BBSParams& params = BBSParams());
   ~BBSLocalization();
 
-  void set_map(const Points& map_points, double resolution, int width, int height, int pyramid_levels);
+  void set_map(const Points& map_points, double resolution, int width, int height, int pyramid_levels, int max_points_per_cell);
 
   boost::optional<Eigen::Isometry2f> localize(const Points& scan_points, double min_score, double* best_score = nullptr);
 
@@ -58,13 +76,7 @@ private:
   std::priority_queue<DiscreteTransformation> create_init_transset(const Points& scan_points) const;
 
 private:
-  double max_range;
-  double min_tx;
-  double max_tx;
-  double min_ty;
-  double max_ty;
-  double min_theta;
-  double max_theta;
+  BBSParams params;
 
   double theta_resolution;
   std::vector<std::shared_ptr<OccupancyGridMap>> gridmap_pyramid;
