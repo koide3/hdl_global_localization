@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(hdl_global_localization)
 
-option(ENABLE_TEASER "Build with Teaser++" ON)
+option(ENABLE_TEASER "Build with Teaser++" OFF)
 
 find_package(catkin REQUIRED COMPONENTS
   iridescence
@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   message_generation
 )
+
+find_package(OpenCV REQUIRED)
 
 find_package(OpenMP)
 if (OPENMP_FOUND)
@@ -77,16 +79,21 @@ catkin_package(
 
 include_directories(
   include
+  ${OpenCV_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
 )
 
 add_library(hdl_global_localization SHARED
+  src/hdl_global_localization/bbs/bbs_localization.cpp
   src/hdl_global_localization/ransac/voxelset.cpp
   src/hdl_global_localization/ransac/ransac_pose_estimation.cpp
   src/hdl_global_localization/engines/global_localization_fpfh_ransac.cpp
 )
+target_link_libraries(hdl_global_localization
+  ${OpenCV_LIBS}
+)
 
-if(TEASER_LIBRARIES)
+  if(TEASER_LIBRARIES)
   add_library(hdl_global_localization_teaser SHARED
     src/hdl_global_localization/engines/global_localization_fpfh_teaser.cpp
   )
@@ -113,3 +120,6 @@ add_dependencies(hdl_global_localization_test ${PROJECT_NAME}_gencpp)
 target_link_libraries(hdl_global_localization_test
   ${catkin_LIBRARIES}
 )
+
+add_executable(bbs_test src/bbs_test.cpp)
+target_link_libraries(bbs_test hdl_global_localization ${OpenCV_LIBS} ${catkin_LIBRARIES})
