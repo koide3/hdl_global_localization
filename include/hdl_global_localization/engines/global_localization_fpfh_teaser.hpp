@@ -1,3 +1,8 @@
+/**
+ * @brief Global pose estimation with FPFH features and Teaser++
+ * @ref Yang et al., "TEASER: Fast and Certifiable Point Cloud Registration", T-RO, 2020
+ * @ref https://github.com/MIT-SPARK/TEASER-plusplus
+ */
 #ifndef HDL_GLOBAL_LOCALIZATION_FPFH_TEASER_HPP
 #define HDL_GLOBAL_LOCALIZATION_FPFH_TEASER_HPP
 

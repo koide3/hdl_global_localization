@@ -1,3 +1,8 @@
+/**
+ * @brief Branch-and-Bound Search-based 2D Global Localization
+ * @ref Hess et al., "Real-Time Loop Closure in 2D LIDAR SLAM", ICRA2016
+ * @ref https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/45466.pdf
+ */
 #ifndef HDL_GLOBAL_LOCALIZATION_BBS_LOCALIZATION_HPP
 #define HDL_GLOBAL_LOCALIZATION_BBS_LOCALIZATION_HPP
 
