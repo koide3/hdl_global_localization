@@ -8,7 +8,7 @@ bbs/max_theta: 3.15
 
 bbs/map_min_z: 2.0
 bbs/map_max_z: 2.4
-bbs/map_width: 1024
+bbs/map_width: 512
 bbs/map_height: 1024
 bbs/map_resolution: 0.5
 bbs/map_pyramid_level: 6
