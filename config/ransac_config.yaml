@@ -1,3 +1,4 @@
+# estimation parameters
 ransac/voxel_based: True
 ransac/max_iterations: 1000000
 ransac/matching_budget: 10000
@@ -6,6 +7,7 @@ ransac/similarity_threshold: 0.5
 ransac/correspondence_randomness: 2
 ransac/inlier_fraction: 0.25
 
+# valid transformation range
 ransac/x_min: -10000.0
 ransac/x_max: 10000.0
 ransac/y_min: -10000.0
