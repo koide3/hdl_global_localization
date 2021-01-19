@@ -4,7 +4,6 @@ project(hdl_global_localization)
 option(ENABLE_TEASER "Build with Teaser++" OFF)
 
 find_package(catkin REQUIRED COMPONENTS
-  iridescence
   roscpp
   pcl_ros
   sensor_msgs
@@ -121,6 +120,3 @@ add_dependencies(hdl_global_localization_test ${PROJECT_NAME}_gencpp)
 target_link_libraries(hdl_global_localization_test
   ${catkin_LIBRARIES}
 )
-
-add_executable(bbs_test src/bbs_test.cpp)
-target_link_libraries(bbs_test hdl_global_localization ${OpenCV_LIBS} ${catkin_LIBRARIES})
