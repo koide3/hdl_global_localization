@@ -2,7 +2,7 @@ FROM ros:noetic
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     && apt-get install --no-install-recommends -y wget nano build-essential \
-    git clang lld libomp-dev libgtest-dev libboost-all-dev ros-noetic-pcl-ros \
+    git clang lld libomp-dev libgtest-dev libboost-all-dev libopencv-dev ros-noetic-pcl-ros \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

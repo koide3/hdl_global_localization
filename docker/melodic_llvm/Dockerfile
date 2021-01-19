@@ -2,7 +2,7 @@ FROM ros:melodic
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
     && apt-get install --no-install-recommends -y wget nano build-essential \
-    libgtest-dev libomp-dev libboost-all-dev clang lld ros-melodic-pcl-ros \
+    libgtest-dev libomp-dev libboost-all-dev libopencv-dev clang lld ros-melodic-pcl-ros \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

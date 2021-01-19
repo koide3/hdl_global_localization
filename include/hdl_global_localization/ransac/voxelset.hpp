@@ -27,7 +27,7 @@ private:
 private:
   double resolution;
 
-  using Voxels = std::unordered_set<Eigen::Vector3i, Vector3iHash, std::equal_to<Eigen::Vector3i>, Eigen::aligned_allocator<const Eigen::Vector3i>>;
+  using Voxels = std::unordered_set<Eigen::Vector3i, Vector3iHash, std::equal_to<Eigen::Vector3i>, Eigen::aligned_allocator<Eigen::Vector3i>>;
   Voxels voxels;
 };  // namespace hdl_global_localization
 
