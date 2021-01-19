@@ -82,7 +82,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(hdl_global_localization SHARED
+add_library(hdl_global_localization
   src/hdl_global_localization/bbs/bbs_localization.cpp
   src/hdl_global_localization/ransac/voxelset.cpp
   src/hdl_global_localization/ransac/ransac_pose_estimation.cpp
@@ -93,14 +93,17 @@ target_link_libraries(hdl_global_localization
   ${OpenCV_LIBS}
 )
 
-  if(TEASER_LIBRARIES)
-  add_library(hdl_global_localization_teaser SHARED
+if(TEASER_LIBRARIES)
+  add_library(hdl_global_localization_teaser
     src/hdl_global_localization/engines/global_localization_fpfh_teaser.cpp
   )
   add_dependencies(hdl_global_localization_teaser teaser)
   target_link_libraries(hdl_global_localization_teaser
     ${TEASER_LIBRARIES}
   )
+
+  add_dependencies(hdl_global_localization teaser)
+  add_dependencies(hdl_global_localization hdl_global_localization_teaser)
   target_link_libraries(hdl_global_localization
     hdl_global_localization_teaser
   )

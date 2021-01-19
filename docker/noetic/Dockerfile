@@ -14,7 +14,7 @@ COPY . /root/catkin_ws/src/hdl_global_localization/
 WORKDIR /root/catkin_ws/src/hdl_global_localization
 
 WORKDIR /root/catkin_ws
-RUN /bin/bash -c '. /opt/ros/noetic/setup.bash; catkin_make -DENABLE_TEASER=ON'
+RUN /bin/bash -c '. /opt/ros/noetic/setup.bash; catkin_make -DENABLE_TEASER=OFF'
 RUN sed -i "6i source \"/root/catkin_ws/devel/setup.bash\"" /ros_entrypoint.sh
 
 WORKDIR /
