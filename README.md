@@ -32,10 +32,7 @@
 - [hdl_localization](https://github.com/koide3/hdl_localization">hdl_localization)
 - [hdl_people_tracking](https://github.com/koide3/hdl_people_tracking">hdl_people_tracking)
 
-
 ## Contact
 Kenji Koide, k.koide@aist.go.jp
 
-Human-Centered Mobility Research Center, National Institute of Advanced Industrial Science and Technology, Japan  [\[URL\]](https://unit.aist.go.jp/rirc/en/team/smart_mobility.html)
-
-
+Human-Centered Mobility Research Center, National Institute of Advanced Industrial Science and Technology (AIST), Japan
