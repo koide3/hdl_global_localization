@@ -1,0 +1,6 @@
+{
+  "global": {
+    "config_base": "config_base.json",
+    "config_bbs": "config_bbs.json"
+  }
+}

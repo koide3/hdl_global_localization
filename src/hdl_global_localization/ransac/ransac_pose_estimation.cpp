@@ -43,13 +43,13 @@
 #include <atomic>
 #include <vector>
 #include <random>
+#include <spdlog/spdlog.h>
+
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/registration/transformation_estimation_svd.h>
 #include <pcl/registration/correspondence_rejection_poly.h>
-
-#include <ros/ros.h>
 
 #include <hdl_global_localization/ransac/ransac_pose_estimation.hpp>
 #include <hdl_global_localization/ransac/matching_cost_evaluater_flann.hpp>
@@ -58,7 +58,7 @@
 namespace hdl_global_localization {
 
 template <typename FeatureT>
-RansacPoseEstimation<FeatureT>::RansacPoseEstimation(ros::NodeHandle& private_nh) : private_nh(private_nh) {}
+RansacPoseEstimation<FeatureT>::RansacPoseEstimation(const RansacPoseEstimationParams& params) : params(params) {}
 
 template <typename FeatureT>
 void RansacPoseEstimation<FeatureT>::set_target(pcl::PointCloud<pcl::PointXYZ>::ConstPtr target, typename pcl::PointCloud<FeatureT>::ConstPtr target_features) {
@@ -67,12 +67,12 @@ void RansacPoseEstimation<FeatureT>::set_target(pcl::PointCloud<pcl::PointXYZ>::
   feature_tree.reset(new pcl::KdTreeFLANN<FeatureT>);
   feature_tree->setInputCloud(target_features);
 
-  if (private_nh.param<bool>("ransac/voxel_based", true)) {
+  if (params.voxel_based) {
     evaluater.reset(new MatchingCostEvaluaterVoxels());
   } else {
     evaluater.reset(new MatchingCostEvaluaterFlann());
   }
-  evaluater->set_target(target, private_nh.param<double>("ransac/max_correspondence_distance", 1.0));
+  evaluater->set_target(target, params.max_correspondence_distance);
 }
 
 template <typename FeatureT>
@@ -89,14 +89,14 @@ GlobalLocalizationResults RansacPoseEstimation<FeatureT>::estimate() {
   correspondence_rejection.setInputTarget(target);
   correspondence_rejection.setInputSource(source);
   correspondence_rejection.setCardinality(3);
-  correspondence_rejection.setSimilarityThreshold(private_nh.param<double>("ransac/similarity_threshold", 0.5));
+  correspondence_rejection.setSimilarityThreshold(params.similarity_threshold);
 
-  ROS_INFO_STREAM("RANSAC : Precompute Nearest Features");
+  spdlog::info("RANSAC : Precompute Nearest Features");
   std::vector<std::vector<int>> similar_features(source->size());
 #pragma omp parallel for
   for (int i = 0; i < source->size(); i++) {
     std::vector<float> sq_dists;
-    feature_tree->nearestKSearch(source_features->at(i), private_nh.param<int>("ransac/correspondence_randomness", 2), similar_features[i], sq_dists);
+    feature_tree->nearestKSearch(source_features->at(i), params.correspondence_randomness, similar_features[i], sq_dists);
   }
 
   std::vector<std::mt19937> mts(omp_get_max_threads());
@@ -104,12 +104,12 @@ GlobalLocalizationResults RansacPoseEstimation<FeatureT>::estimate() {
     mts[i] = std::mt19937(i * 8191 + i + target->size() + source->size());
   }
 
-  ROS_INFO_STREAM("RANSAC : Main Loop");
+  spdlog::info("RANSAC : Main Loop");
   std::atomic_int matching_count(0);
   std::atomic_int iterations(0);
-  std::vector<GlobalLocalizationResult::Ptr> results(private_nh.param<int>("ransac/max_iterations", 100000));
-  int matching_budget = private_nh.param<int>("ransac/matching_budget", 10000);
-  double min_inlier_fraction = private_nh.param<double>("ransac/inlier_fraction", 0.25);
+  std::vector<GlobalLocalizationResult::Ptr> results(params.max_iterations);
+  int matching_budget = params.matching_budget;
+  double min_inlier_fraction = params.min_inlier_fraction;
 
 #pragma omp parallel for
   for (int i = 0; i < results.size(); i++) {
@@ -137,7 +137,7 @@ GlobalLocalizationResults RansacPoseEstimation<FeatureT>::estimate() {
     matching_count++;
     double inlier_fraction = 0.0;
     double matching_error = evaluater->calc_matching_error(*source, transformation, &inlier_fraction);
-    ROS_INFO_STREAM("RANSAC : iteration:" << iterations << " matching_count:" << matching_count << " error:" << matching_error << " inlier:" << inlier_fraction);
+    spdlog::info("RANSAC : iteration={} matching_count={} error={} inlier={}", iterations, matching_count, matching_error, inlier_fraction);
 
     if (inlier_fraction > min_inlier_fraction) {
       results[i].reset(new GlobalLocalizationResult(matching_error, inlier_fraction, Eigen::Isometry3f(transformation)));

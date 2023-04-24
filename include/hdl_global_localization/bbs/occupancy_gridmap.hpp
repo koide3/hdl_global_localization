@@ -3,7 +3,8 @@
 
 #include <vector>
 #include <Eigen/Core>
-#include <nav_msgs/OccupancyGrid.h>
+#include <rclcpp/rclcpp.hpp>
+#include <nav_msgs/msg/occupancy_grid.hpp>
 
 #include <opencv2/opencv.hpp>
 
@@ -69,10 +70,11 @@ public:
     return std::make_shared<OccupancyGridMap>(resolution * 2.0, small_map);
   }
 
-  nav_msgs::OccupancyGridConstPtr to_rosmsg() const {
-    nav_msgs::OccupancyGridPtr msg(new nav_msgs::OccupancyGrid);
+  nav_msgs::msg::OccupancyGrid::ConstSharedPtr to_rosmsg() const {
+    nav_msgs::msg::OccupancyGrid::SharedPtr msg(new nav_msgs::msg::OccupancyGrid);
     msg->header.frame_id = "map";
-    msg->header.stamp = ros::Time(0);
+    msg->header.stamp.sec = 0;
+    msg->header.stamp.nanosec = 0;
 
     msg->data.resize(values.rows * values.cols);
     std::transform(values.begin(), values.end(), msg->data.begin(), [=](auto x) {
@@ -80,7 +82,7 @@ public:
       return std::max(0.0, std::min(100.0, x_));
     });
 
-    msg->info.map_load_time = ros::Time::now();
+    // msg->info.map_load_time = 
     msg->info.width = values.cols;
     msg->info.height = values.rows;
     msg->info.resolution = resolution;

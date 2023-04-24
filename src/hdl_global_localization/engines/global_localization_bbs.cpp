@@ -1,66 +1,104 @@
 #include <hdl_global_localization/engines/global_localization_bbs.hpp>
 
-#include <pcl_ros/point_cloud.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <spdlog/spdlog.h>
+#include <rclcpp/rclcpp.hpp>
+#include <pcl_conversions/pcl_conversions.h>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
+#include <hdl_global_localization/util/config.hpp>
 #include <hdl_global_localization/bbs/bbs_localization.hpp>
 #include <hdl_global_localization/bbs/occupancy_gridmap.hpp>
 
 namespace hdl_global_localization {
 
-GlobalLocalizationBBS::GlobalLocalizationBBS(ros::NodeHandle& private_nh) : private_nh(private_nh) {
-  gridmap_pub = private_nh.advertise<nav_msgs::OccupancyGrid>("bbs/gridmap", 1, true);
-  map_slice_pub = private_nh.advertise<sensor_msgs::PointCloud2>("bbs/map_slice", 1, true);
-  scan_slice_pub = private_nh.advertise<sensor_msgs::PointCloud2>("bbs/scan_slice", 1, false);
+GlobalLocalizationBBSParams::GlobalLocalizationBBSParams() {
+  const Config config(GlobalConfig::get_config_path("config_bbs"));
+
+  bbs_params.max_range = config.param<double>("bbs", "max_range", 15.0);
+  bbs_params.min_tx = config.param<double>("bbs", "min_tx", -50.0);
+  bbs_params.max_tx = config.param<double>("bbs", "max_tx", 50.0);
+  bbs_params.min_ty = config.param<double>("bbs", "min_ty", -50.0);
+  bbs_params.max_ty = config.param<double>("bbs", "max_ty", 50.0);
+  bbs_params.min_theta = config.param<double>("bbs", "min_theta", -3.15);
+  bbs_params.max_theta = config.param<double>("bbs", "max_theta", 3.15);
+
+  map_min_z = config.param<double>("bbs", "map_min_z", 2.0);
+  map_max_z = config.param<double>("bbs", "map_max_z", 2.4);
+
+  map_width = config.param<int>("bbs", "map_width", 512);
+  map_height = config.param<int>("bbs", "map_height", 1024);
+  map_resolution = config.param<double>("bbs", "map_resolution", 0.5);
+
+  map_pyramid_level = config.param<int>("bbs", "map_pyramid_level", 6);
+  max_points_per_cell = config.param<int>("bbs", "max_points_per_cell", 5);
+
+  scan_min_z = config.param<double>("bbs", "scan_min_z", -0.2);
+  scan_max_z = config.param<double>("bbs", "scan_max_z", -0.2);
+}
+
+GlobalLocalizationBBSParams::~GlobalLocalizationBBSParams() {}
+
+GlobalLocalizationBBS::GlobalLocalizationBBS(rclcpp::Node& node, const GlobalLocalizationBBSParams& params) : params(params) {
+  auto gridmap_qos = rclcpp::SystemDefaultsQoS();
+  gridmap_qos.get_rmw_qos_profile().depth = 1;
+  gridmap_qos.get_rmw_qos_profile().reliability = rmw_qos_reliability_policy_e::RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  gridmap_qos.get_rmw_qos_profile().durability = rmw_qos_durability_policy_e::RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  gridmap_pub = node.create_publisher<nav_msgs::msg::OccupancyGrid>("bbs/gridmap", gridmap_qos);
+
+  map_slice_pub = node.create_publisher<sensor_msgs::msg::PointCloud2>("bbs/map_slice", rclcpp::SensorDataQoS());
+  scan_slice_pub = node.create_publisher<sensor_msgs::msg::PointCloud2>("bbs/scan_slice", rclcpp::SensorDataQoS());
 }
 
 GlobalLocalizationBBS ::~GlobalLocalizationBBS() {}
 
 void GlobalLocalizationBBS::set_global_map(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud) {
-  BBSParams params;
-  params.max_range = private_nh.param<double>("bbs/max_range", 15.0);
-  params.min_tx = private_nh.param<double>("bbs/min_tx", -10.0);
-  params.max_tx = private_nh.param<double>("bbs/max_tx", 10.0);
-  params.min_ty = private_nh.param<double>("bbs/min_ty", -10.0);
-  params.max_ty = private_nh.param<double>("bbs/max_ty", 10.0);
-  params.min_theta = private_nh.param<double>("bbs/min_theta", -3.15);
-  params.max_theta = private_nh.param<double>("bbs/max_theta", 3.15);
-  bbs.reset(new BBSLocalization(params));
+  // params.max_range = private_nh.param<double>("bbs/max_range", 15.0);
+  // params.min_tx = private_nh.param<double>("bbs/min_tx", -10.0);
+  // params.max_tx = private_nh.param<double>("bbs/max_tx", 10.0);
+  // params.min_ty = private_nh.param<double>("bbs/min_ty", -10.0);
+  // params.max_ty = private_nh.param<double>("bbs/max_ty", 10.0);
+  // params.min_theta = private_nh.param<double>("bbs/min_theta", -3.15);
+  // params.max_theta = private_nh.param<double>("bbs/max_theta", 3.15);
+  bbs.reset(new BBSLocalization(params.bbs_params));
 
-  double map_min_z = private_nh.param<double>("bbs/map_min_z", 2.0);
-  double map_max_z = private_nh.param<double>("bbs/map_max_z", 2.4);
+  double map_min_z = params.map_min_z;
+  double map_max_z = params.map_max_z;
   auto map_2d = slice(*cloud, map_min_z, map_max_z);
-  ROS_INFO_STREAM("Set Map " << map_2d.size() << " points");
+  spdlog::info("Set Map {} points", map_2d.size());
 
   if (map_2d.size() < 128) {
-    ROS_WARN_STREAM("Num points in the sliced map is too small!!");
-    ROS_WARN_STREAM("Change the slice range parameters!!");
+    spdlog::warn("Num points in the sliced map is too small!!");
+    spdlog::warn("Change the slice range parameters!!");
   }
 
-  int map_width = private_nh.param<int>("bbs/map_width", 1024);
-  int map_height = private_nh.param<int>("bbs/map_height", 1024);
-  double map_resolution = private_nh.param<double>("bbs/map_resolution", 0.5);
-  int map_pyramid_level = private_nh.param<int>("bbs/map_pyramid_level", 6);
-  int max_points_per_cell = private_nh.param<int>("bbs/max_points_per_cell", 5);
+  int map_width = params.map_width;
+  int map_height = params.map_height;
+  double map_resolution = params.map_resolution;
+  int map_pyramid_level = params.map_pyramid_level;
+  int max_points_per_cell = params.max_points_per_cell;
   bbs->set_map(map_2d, map_resolution, map_width, map_height, map_pyramid_level, max_points_per_cell);
 
   auto map_3d = unslice(map_2d);
   map_3d->header.frame_id = "map";
-  map_slice_pub.publish(map_3d);
-  gridmap_pub.publish(bbs->gridmap()->to_rosmsg());
+
+  auto map_slice_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+  pcl::toROSMsg(*map_3d, *map_slice_msg);
+
+  map_slice_pub->publish(*map_slice_msg);
+  gridmap_pub->publish(*bbs->gridmap()->to_rosmsg());
 }
 
 GlobalLocalizationResults GlobalLocalizationBBS::query(pcl::PointCloud<pcl::PointXYZ>::ConstPtr cloud, int max_num_candidates) {
-  double scan_min_z = private_nh.param<double>("bbs/scan_min_z", -0.2);
-  double scan_max_z = private_nh.param<double>("bbs/scan_max_z", 0.2);
+  double scan_min_z = params.scan_min_z;
+  double scan_max_z = params.scan_max_z;
   auto scan_2d = slice(*cloud, scan_min_z, scan_max_z);
 
   std::vector<GlobalLocalizationResult::Ptr> results;
 
-  ROS_INFO_STREAM("Query " << scan_2d.size() << " points");
+  spdlog::info("Query {} points", scan_2d.size());
   if (scan_2d.size() < 32) {
-    ROS_WARN_STREAM("Num points in the sliced scan is too small!!");
-    ROS_WARN_STREAM("Change the slice range parameters!!");
+    spdlog::warn("Num points in the sliced scan is too small!!");
+    spdlog::warn("Change the slice range parameters!!");
     return GlobalLocalizationResults(results);
   }
 
@@ -70,10 +108,13 @@ GlobalLocalizationResults GlobalLocalizationBBS::query(pcl::PointCloud<pcl::Poin
     return GlobalLocalizationResults(results);
   }
 
-  if (scan_slice_pub.getNumSubscribers()) {
+  if (scan_slice_pub->get_subscription_count()) {
     auto scan_3d = unslice(scan_2d);
     scan_3d->header = cloud->header;
-    scan_slice_pub.publish(scan_3d);
+
+    auto scan_slice_msg = std::make_shared<sensor_msgs::msg::PointCloud2>();
+    pcl::toROSMsg(*scan_3d, *scan_slice_msg);
+    scan_slice_pub->publish(*scan_slice_msg);
   }
 
   Eigen::Isometry3f trans_3d = Eigen::Isometry3f::Identity();

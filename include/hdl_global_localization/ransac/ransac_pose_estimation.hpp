@@ -46,7 +46,6 @@
 #include <atomic>
 #include <vector>
 #include <random>
-#include <ros/ros.h>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/search/kdtree.h>
@@ -57,10 +56,20 @@
 
 namespace hdl_global_localization {
 
+struct RansacPoseEstimationParams {
+  bool voxel_based = true;
+  double max_correspondence_distance = 1.0;
+  double similarity_threshold = 0.5;
+  int correspondence_randomness = 2;
+  int max_iterations = 100000;
+  int matching_budget = 10000;
+  double min_inlier_fraction = 0.25;
+};
+
 template <typename FeatureT>
 class RansacPoseEstimation {
 public:
-  RansacPoseEstimation(ros::NodeHandle& private_nh);
+  RansacPoseEstimation(const RansacPoseEstimationParams& params = RansacPoseEstimationParams());
 
   void set_target(pcl::PointCloud<pcl::PointXYZ>::ConstPtr target, typename pcl::PointCloud<FeatureT>::ConstPtr target_features);
   void set_source(pcl::PointCloud<pcl::PointXYZ>::ConstPtr source, typename pcl::PointCloud<FeatureT>::ConstPtr source_features);
@@ -71,7 +80,7 @@ private:
   void select_samples(std::mt19937& mt, const std::vector<std::vector<int>>& similar_features, std::vector<int>& samples, std::vector<int>& correspondences) const;
 
 private:
-  ros::NodeHandle& private_nh;
+  const RansacPoseEstimationParams params;
 
   pcl::PointCloud<pcl::PointXYZ>::ConstPtr target;
   typename pcl::PointCloud<FeatureT>::ConstPtr target_features;

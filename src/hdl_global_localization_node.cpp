@@ -29,14 +29,7 @@ public:
   }
 
 private:
-  pcl::PointCloud<pcl::PointXYZ>::Ptr downsample(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, double resolution) {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr filtered(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::ApproximateVoxelGrid<pcl::PointXYZ> voxelgrid;
-    voxelgrid.setLeafSize(resolution, resolution, resolution);
-    voxelgrid.setInputCloud(cloud);
-    voxelgrid.filter(*filtered);
-    return filtered;
-  }
+
 
   bool set_engine(const std::string& engine_name) {
     if (engine_name == "BBS") {

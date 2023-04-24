@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <iostream>
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
