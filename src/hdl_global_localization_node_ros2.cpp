@@ -29,6 +29,8 @@ public:
     globalmap_downsample_resolution = config.param<double>("base", "globalmap_downsample_resolution", 0.5);
     query_downsample_resolution = config.param<double>("base", "query_downsample_resolution", 0.5);
 
+    set_engine("BBS");
+
     using std::placeholders::_1;
     using std::placeholders::_2;
     set_engine_service = this->create_service<srv::SetGlobalLocalizationEngine>("set_engine", std::bind(&GlobalLocalizationNode::set_global_localization_engine, this, _1, _2));
@@ -37,11 +39,11 @@ public:
   }
 
   void set_global_localization_engine(const srv::SetGlobalLocalizationEngine::Request::SharedPtr req, srv::SetGlobalLocalizationEngine::Response::SharedPtr res) {
-    RCLCPP_INFO_STREAM(this->get_logger(), "Set Global Localization Engine");
     set_engine(req->engine_name.data);
   }
 
   bool set_engine(const std::string& engine_name) {
+    RCLCPP_INFO_STREAM(this->get_logger(), "Set Global Localization Engine (" << engine_name << ")");
     if (engine_name == "BBS") {
       engine.reset(new GlobalLocalizationBBS(*this));
     } else if (engine_name == "FPFH_RANSAC") {

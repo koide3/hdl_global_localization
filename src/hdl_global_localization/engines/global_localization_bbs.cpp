@@ -41,8 +41,8 @@ GlobalLocalizationBBSParams::~GlobalLocalizationBBSParams() {}
 GlobalLocalizationBBS::GlobalLocalizationBBS(rclcpp::Node& node, const GlobalLocalizationBBSParams& params) : params(params) {
   auto gridmap_qos = rclcpp::SystemDefaultsQoS();
   gridmap_qos.get_rmw_qos_profile().depth = 1;
-  gridmap_qos.get_rmw_qos_profile().reliability = rmw_qos_reliability_policy_e::RMW_QOS_POLICY_RELIABILITY_RELIABLE;
-  gridmap_qos.get_rmw_qos_profile().durability = rmw_qos_durability_policy_e::RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
+  gridmap_qos.get_rmw_qos_profile().reliability = RMW_QOS_POLICY_RELIABILITY_RELIABLE;
+  gridmap_qos.get_rmw_qos_profile().durability = RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL;
   gridmap_pub = node.create_publisher<nav_msgs::msg::OccupancyGrid>("bbs/gridmap", gridmap_qos);
 
   map_slice_pub = node.create_publisher<sensor_msgs::msg::PointCloud2>("bbs/map_slice", rclcpp::SensorDataQoS());
