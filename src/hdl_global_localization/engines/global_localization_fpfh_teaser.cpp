@@ -48,7 +48,7 @@ GlobalLocalizationResults GlobalLocalizationEngineFPFH_Teaser::query(pcl::PointC
     source_features,
     target_features,
     false,
-    private_nh.param<bool>("teaser/corss_check", false),
+    private_nh.param<bool>("teaser/cross_check", false),
     private_nh.param<bool>("teaser/tuple_test", false),
     private_nh.param<double>("teaser/tuple_scale", 0.95));
 
