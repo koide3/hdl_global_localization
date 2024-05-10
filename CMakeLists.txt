@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(aurrigo_global_localization)
 
-option(ENABLE_TEASER "Build with Teaser++" OFF)
+# option(ENABLE_TEASER "Build with Teaser++" OFF)
+# This option does not work, we force enable teaser build
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -20,7 +21,7 @@ if (OPENMP_FOUND)
 endif()
 
 include(ExternalProject)
-if(ENABLE_TEASER)
+# if(ENABLE_TEASER)
   ExternalProject_Add(teaser
     GIT_REPOSITORY https://github.com/koide3/TEASER-plusplus
     GIT_TAG master
@@ -36,7 +37,7 @@ if(ENABLE_TEASER)
   )
 
   add_definitions(-DTEASER_ENABLED)
-endif()
+# endif()
 
 ################################################
 ## Declare ROS messages, services and actions ##
