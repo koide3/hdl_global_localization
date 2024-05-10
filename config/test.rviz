@@ -118,7 +118,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /hdl_global_localization/bbs/gridmap
+      Topic: /aurrigo_global_localization/bbs/gridmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -147,7 +147,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.10000000149011612
       Style: Flat Squares
-      Topic: /hdl_global_localization/bbs/map_slice
+      Topic: /aurrigo_global_localization/bbs/map_slice
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -177,7 +177,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.10000000149011612
       Style: Flat Squares
-      Topic: /hdl_global_localization/bbs/scan_slice
+      Topic: /aurrigo_global_localization/bbs/scan_slice
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true

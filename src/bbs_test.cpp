@@ -12,8 +12,8 @@
 #include <glk/pointcloud_buffer_pcl.hpp>
 #include <guik/viewer/light_viewer.hpp>
 
-#include <hdl_global_localization/bbs/bbs_localization.hpp>
-#include <hdl_global_localization/bbs/occupancy_gridmap.hpp>
+#include <aurrigo_global_localization/bbs/bbs_localization.hpp>
+#include <aurrigo_global_localization/bbs/occupancy_gridmap.hpp>
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr slice(const pcl::PointCloud<pcl::PointXYZ>& cloud, double min_height, double max_height) {
   auto filtered = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
@@ -51,11 +51,11 @@ transform_2d(const std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::
 
 int main(int argc, char** argv) {
   auto map_cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  pcl::io::loadPCDFile("/home/koide/catkin_ws/src/hdl_localization/data/map.pcd", *map_cloud);
+  pcl::io::loadPCDFile("/home/koide/catkin_ws/src/aurrigo_localization/data/map.pcd", *map_cloud);
   map_cloud->header.frame_id = "map";
 
   auto scan_cloud = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-  pcl::io::loadPCDFile("/home/koide/Downloads/hdl_400/1509348797.060304000.pcd", *scan_cloud);
+  pcl::io::loadPCDFile("/home/koide/Downloads/aurrigo_400/1509348797.060304000.pcd", *scan_cloud);
   scan_cloud->header.frame_id = "map";
 
   auto map_slice = slice(*map_cloud, 2.0, 2.4);
@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
     scan_3d[i].z() = 0.0f;
   }
 
-  hdl_global_localization::BBSLocalization bbs;
+  aurrigo_global_localization::BBSLocalization bbs;
   bbs.set_map(map_2d, 0.5, 512, 1024, 5, 5);
 
   auto viewer = guik::LightViewer::instance();

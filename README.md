@@ -1,11 +1,11 @@
-# hdl_global_localization
+# aurrigo_global_localization
 
-![hdl_global_localization](https://user-images.githubusercontent.com/31344317/105116113-71fc6180-5b0d-11eb-9d85-bbea922dde84.gif)
+![aurrigo_global_localization](https://user-images.githubusercontent.com/31344317/105116113-71fc6180-5b0d-11eb-9d85-bbea922dde84.gif)
 
-[![Build Status](https://travis-ci.org/koide3/hdl_global_localization.svg?branch=master)](https://travis-ci.org/koide3/hdl_global_localization) on ROS melodic and noetic
+[![Build Status](https://travis-ci.org/koide3/aurrigo_global_localization.svg?branch=master)](https://travis-ci.org/koide3/aurrigo_global_localization) on ROS melodic and noetic
 
 ## Requirements
-***hdl_global_localization*** requires the following libraries:
+***aurrigo_global_localization*** requires the following libraries:
 - PCL
 - OpenCV
 - OpenMP
@@ -13,10 +13,10 @@
 
 ## Services
 
-- ***/hdl_global_localization/set_engine*** (hdl_global_localization::SetGlobalLocalizationEngine)
+- ***/aurrigo_global_localization/set_engine*** (aurrigo_global_localization::SetGlobalLocalizationEngine)
   - Available global localization engines: BBS, FPFH_RANSAC, FPFH_TEASER
-- ***/hdl_global_localization/set_global_map*** (hdl_global_localization::SetGlobalMap)
-- ***/hdl_global_localization/query*** (hdl_global_localization::QueryGlobalLocalization)
+- ***/aurrigo_global_localization/set_global_map*** (aurrigo_global_localization::SetGlobalMap)
+- ***/aurrigo_global_localization/query*** (aurrigo_global_localization::QueryGlobalLocalization)
 
 
 ## Algorithms

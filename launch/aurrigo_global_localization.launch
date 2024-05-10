@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- load params -->
+  <rosparam command="load" file="$(find aurrigo_global_localization)/config/general_config.yaml" ns="/aurrigo_global_localization" />
+  <rosparam command="load" file="$(find aurrigo_global_localization)/config/bbs_config.yaml" ns="/aurrigo_global_localization" />
+  <rosparam command="load" file="$(find aurrigo_global_localization)/config/fpfh_config.yaml" ns="/aurrigo_global_localization" />
+  <rosparam command="load" file="$(find aurrigo_global_localization)/config/ransac_config.yaml" ns="/aurrigo_global_localization" />
+  <rosparam command="load" file="$(find aurrigo_global_localization)/config/teaser_config.yaml" ns="/aurrigo_global_localization" />
+
+
+  <node pkg="aurrigo_global_localization" type="aurrigo_global_localization_node" name="aurrigo_global_localization" output="screen" />
+</launch>

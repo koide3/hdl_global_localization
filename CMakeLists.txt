@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(hdl_global_localization)
+project(aurrigo_global_localization)
 
 option(ENABLE_TEASER "Build with Teaser++" OFF)
 
@@ -67,7 +67,7 @@ generate_messages(
 ###################################
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES hdl_global_localization
+#  LIBRARIES aurrigo_global_localization
 #  CATKIN_DEPENDS roscpp
 #  DEPENDS teaser_registration
 )
@@ -82,44 +82,44 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_library(hdl_global_localization
-  src/hdl_global_localization/bbs/bbs_localization.cpp
-  src/hdl_global_localization/ransac/voxelset.cpp
-  src/hdl_global_localization/ransac/ransac_pose_estimation.cpp
-  src/hdl_global_localization/engines/global_localization_bbs.cpp
-  src/hdl_global_localization/engines/global_localization_fpfh_ransac.cpp
+add_library(aurrigo_global_localization
+  src/aurrigo_global_localization/bbs/bbs_localization.cpp
+  src/aurrigo_global_localization/ransac/voxelset.cpp
+  src/aurrigo_global_localization/ransac/ransac_pose_estimation.cpp
+  src/aurrigo_global_localization/engines/global_localization_bbs.cpp
+  src/aurrigo_global_localization/engines/global_localization_fpfh_ransac.cpp
 )
-target_link_libraries(hdl_global_localization
+target_link_libraries(aurrigo_global_localization
   ${OpenCV_LIBS}
 )
 
 if(TEASER_LIBRARIES)
-  add_library(hdl_global_localization_teaser
-    src/hdl_global_localization/engines/global_localization_fpfh_teaser.cpp
+  add_library(aurrigo_global_localization_teaser
+    src/aurrigo_global_localization/engines/global_localization_fpfh_teaser.cpp
   )
-  add_dependencies(hdl_global_localization_teaser teaser)
-  target_link_libraries(hdl_global_localization_teaser
+  add_dependencies(aurrigo_global_localization_teaser teaser)
+  target_link_libraries(aurrigo_global_localization_teaser
     ${TEASER_LIBRARIES}
   )
 
-  add_dependencies(hdl_global_localization teaser)
-  add_dependencies(hdl_global_localization hdl_global_localization_teaser)
-  target_link_libraries(hdl_global_localization
-    hdl_global_localization_teaser
+  add_dependencies(aurrigo_global_localization teaser)
+  add_dependencies(aurrigo_global_localization aurrigo_global_localization_teaser)
+  target_link_libraries(aurrigo_global_localization
+    aurrigo_global_localization_teaser
   )
 endif()
 
 
-add_executable(hdl_global_localization_node src/hdl_global_localization_node.cpp)
-add_dependencies(hdl_global_localization_node hdl_global_localization ${PROJECT_NAME}_gencpp)
-target_link_libraries(hdl_global_localization_node
-  hdl_global_localization
+add_executable(aurrigo_global_localization_node src/aurrigo_global_localization_node.cpp)
+add_dependencies(aurrigo_global_localization_node aurrigo_global_localization ${PROJECT_NAME}_gencpp)
+target_link_libraries(aurrigo_global_localization_node
+  aurrigo_global_localization
   ${catkin_LIBRARIES}
 )
 
 
-add_executable(hdl_global_localization_test src/hdl_global_localization_test.cpp)
-add_dependencies(hdl_global_localization_test ${PROJECT_NAME}_gencpp)
-target_link_libraries(hdl_global_localization_test
+add_executable(aurrigo_global_localization_test src/aurrigo_global_localization_test.cpp)
+add_dependencies(aurrigo_global_localization_test ${PROJECT_NAME}_gencpp)
+target_link_libraries(aurrigo_global_localization_test
   ${catkin_LIBRARIES}
 )
