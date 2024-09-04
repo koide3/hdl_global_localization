@@ -41,7 +41,7 @@ public:
     }
 
     cloud->header.frame_id = "map";
-    globalmap_pub.publish(cloud);
+    globalmap_pub.publish(*cloud);
   }
 
   void points_callback(sensor_msgs::PointCloud2ConstPtr cloud_msg) {
@@ -71,7 +71,7 @@ public:
     pcl::transformPointCloud(*cloud, *transformed, transformation);
     transformed->header.frame_id = "map";
 
-    points_pub.publish(transformed);
+    points_pub.publish(*transformed);
   }
 
 private:
